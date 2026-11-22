@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ vehicle_no }} · 明细{% endblock %}
+{% block content %}
+<h1>车辆 {{ vehicle_no }}</h1>
+<p><a href="{{ url_for('index') }}">← 返回总览</a></p>
+
+<section class="card">
+  <h2>合并后的保障段（等待期内不计天、不计索赔）</h2>
+  {% if parts %}
+  <table>
+    <thead><tr><th>段</th><th>起日（计入）</th><th>止日（不计）</th><th>等待期天数</th><th>可赔起始</th><th>段内可赔天数</th></tr></thead>
+    <tbody>
+      {% for p in parts %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ p.start }}</td>
+        <td>{{ p.end }}</td>
+        <td>{{ p.waiting_days }}</td>
+        <td>{{ p.effective_start }}</td>
+        <td>{{ p.payable }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="hint">该车没有有效合同。</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>合同原始记录</h2>
+  {% if contracts %}
+  <table>
+    <thead><tr><th>#</th><th>合同号</th><th>起日</th><th>止日</th><th>状态</th><th>更正</th></tr></thead>
+    <tbody>
+      {% for c in contracts %}
+      <tr class="{{ 'voided' if c['voided_at'] else '' }}">
+        <td>{{ c["id"] }}</td>
+        <td>{{ c["contract_no"] }}</td>
+        <td>{{ c["start_date"] }}</td>
+        <td>{{ c["end_date"] }}</td>
+        <td>{{ "已撤销" if c["voided_at"] else "有效" }}</td>
+        <td>
+          {% if not c["voided_at"] %}
+          <form method="post" action="{{ url_for('correct_contract', contract_id=c['id']) }}" class="inline">
+            <input type="text" name="contract_no" value="{{ c['contract_no'] }}" size="10" required>
+            <input type="text" name="vehicle_no" value="{{ c['vehicle_no'] }}" size="8" required>
+            <input type="date" name="start_date" value="{{ c['start_date'] }}" required>
+            <input type="date" name="end_date" value="{{ c['end_date'] }}" required>
+            <button type="submit">保存</button>
+          </form>
+          <form method="post" action="{{ url_for('void_contract', contract_id=c['id']) }}" class="inline"
+                onsubmit="return confirm('撤销合同 #{{ c['id'] }}？原始记录会保留但不再计入。')">
+            <input type="hidden" name="vehicle_no" value="{{ vehicle_no }}">
+            <button type="submit" class="danger">撤销</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="hint">无合同记录。</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>索赔原始记录</h2>
+  {% if claims %}
+  <table>
+    <thead><tr><th>#</th><th>索赔号</th><th>故障日</th><th>是否计入</th><th>更正</th></tr></thead>
+    <tbody>
+      {% for c in claims %}
+      <tr>
+        <td>{{ c["id"] }}</td>
+        <td>{{ c["claim_no"] }}</td>
+        <td>{{ c["fault_date"] or "（空）" }}</td>
+        <td>{{ "计入" if c["included"] else "未计入" }}</td>
+        <td>
+          <form method="post" action="{{ url_for('correct_claim', claim_id=c['id']) }}" class="inline">
+            <input type="text" name="claim_no" value="{{ c['claim_no'] }}" size="10" required>
+            <input type="text" name="vehicle_no" value="{{ vehicle_no }}" size="8" required>
+            <input type="date" name="fault_date" value="{{ c['fault_date'] }}">
+            <button type="submit">保存</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="hint">无索赔记录。</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>按月取数结果</h2>
+  {% if months %}
+  <table>
+    <thead><tr><th>月份</th><th>可赔天数</th><th>等待期扣除</th><th>计入索赔号</th><th>计算时间</th></tr></thead>
+    <tbody>
+      {% for r in months %}
+      <tr>
+        <td>{{ r["month"] }}</td>
+        <td>{{ r["payable_days"] }}</td>
+        <td>{{ r["waiting_days"] }}</td>
+        <td class="mono">{{ r["claim_numbers"] }}</td>
+        <td class="mono">{{ r["computed_at"] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="hint">暂无结果。</p>
+  {% endif %}
+</section>
+{% endblock %}

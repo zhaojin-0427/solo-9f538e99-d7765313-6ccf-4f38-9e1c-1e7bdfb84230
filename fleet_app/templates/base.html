@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}车队精算取数{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}">车队精算取数</a>
+  <nav>
+    <a href="{{ url_for('index') }}">总览</a>
+    <a href="{{ url_for('extract') }}">按月取数</a>
+    <a href="{{ url_for('batches') }}">批次日志</a>
+  </nav>
+</header>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer>起日计入、止日不计 · 每段前 30 天等待期 · 同一保障期相接或重叠自动合并</footer>
+</body>
+</html>

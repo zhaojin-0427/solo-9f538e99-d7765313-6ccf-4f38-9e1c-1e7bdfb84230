@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}按月取数 · {{ month }}{% endblock %}
+{% block content %}
+<h1>按月取数</h1>
+<form method="get" action="{{ url_for('extract') }}" class="filters">
+  <label>自然月
+    <input type="month" name="month" value="{{ month }}" required>
+  </label>
+  <button type="submit">取数</button>
+  <a class="button" href="{{ url_for('download_extract', month=month) }}">下载本 CSV</a>
+</form>
+<p class="hint">口径：起日计入、止日不计；每段前 30 天为等待期，等待期内天数和索赔均不计入。</p>
+
+<div class="stats">
+  <div><span>{{ totals.vehicles }}</span>车辆</div>
+  <div><span>{{ totals.days }}</span>可赔天数</div>
+  <div><span>{{ totals.waiting }}</span>等待期扣除天数</div>
+  <div><span>{{ totals.claims }}</span>计入索赔</div>
+</div>
+
+{% if rows %}
+<table>
+  <thead><tr><th>车号</th><th>月份</th><th>可赔天数</th><th>等待期扣除</th><th>计入索赔号</th></tr></thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td><a href="{{ url_for('vehicle', vehicle_no=r['vehicle_no']) }}">{{ r["vehicle_no"] }}</a></td>
+      <td>{{ r["month"] }}</td>
+      <td>{{ r["payable_days"] }}</td>
+      <td>{{ r["waiting_days"] }}</td>
+      <td class="mono">{{ r["claim_numbers"] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="hint">{{ month }} 没有可赔结果。</p>
+{% endif %}
+{% endblock %}

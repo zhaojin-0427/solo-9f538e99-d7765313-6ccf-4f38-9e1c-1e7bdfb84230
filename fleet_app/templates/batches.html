@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}批次日志{% endblock %}
+{% block content %}
+<h1>批次日志</h1>
+<p class="hint">每批只重算其涉及的车辆；“重算”列即实际重建了保障段的车辆。</p>
+{% if batches %}
+<table>
+  <thead><tr><th>批次</th><th>类型</th><th>模式</th><th>说明</th><th>等待期(天)</th><th>涉及车辆</th><th>重算车辆</th><th>时间</th></tr></thead>
+  <tbody>
+    {% for b in batches %}
+    <tr>
+      <td>#{{ b["id"] }}</td>
+      <td>{{ b["kind"] }}</td>
+      <td>{{ b["mode"] }}</td>
+      <td>{{ b["label"] }}</td>
+      <td>{{ b["waiting_days"] }}</td>
+      <td class="mono">{{ b["vehicles"] }}</td>
+      <td class="mono">{{ b["rebuilt"] or "-" }}</td>
+      <td class="mono">{{ b["created_at"] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="hint">还没有导入批次。</p>
+{% endif %}
+{% endblock %}
